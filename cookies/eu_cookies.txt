@@ -1,0 +1,2 @@
+# Sample cookies file for EU users
+# Replace with a real Netscape cookies.txt when necessary

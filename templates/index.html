@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>URL Video Downloader</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      .banner { max-width: 100%; height: 120px; object-fit: cover; border: 1px solid #ddd }
+      .card { max-width: 800px; margin: 20px auto; }
+      label { display:block; margin-top:8px }
+      textarea { width:100%; height:100px }
+      input[type=text] { width:100% }
+      .small { font-size: 0.9em; color:#555 }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img class="banner" src="{{ url_for('static', filename='banner-eu.svg') }}" alt="banner">
+      <h1>URL Video Downloader</h1>
+      <p class="small">Paste a video page URL (YouTube, Instagram, etc.). No login required.</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul>
+          {% for m in messages %}
+            <li style="color:red">{{ m }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="/download" enctype="multipart/form-data">
+        <label>Page URL</label>
+        <input type="text" name="url" placeholder="https://..." required>
+
+        <!-- Cookies and proxy inputs removed for testing; app will attempt direct downloads -->
+
+        <div style="margin-top:12px">
+          <label style="display:inline-block; margin-right:12px"><input type="checkbox" name="test_only"> Test only (no download)</label>
+          <button type="submit">Download</button>
+        </div>
+      </form>
+
+      <p class="small">Default banner is EU; switch region to see other banner.</p>
+    </div>
+  </body>
+</html>

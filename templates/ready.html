@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Your file is ready</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      .card { max-width: 800px; margin: 20px auto; }
+      .small { font-size: 0.9em; color:#555 }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Your file is ready</h1>
+      <p class="small">Click the button below to download the file. It will be removed from the server shortly after the download starts.</p>
+      <form method="get" action="{{ url_for('serve_file', token=token) }}">
+        <button type="submit">Download {{ filename }}</button>
+      </form>
+      <p class="small"><a href="{{ url_for('index') }}">Return</a></p>
+    </div>
+  </body>
+</html>
