@@ -2,6 +2,7 @@ import os
 import tempfile
 import shutil
 import threading
+import mimetypes
 from flask import Flask, request, render_template, send_file, redirect, url_for, flash
 try:
     from yt_dlp import YoutubeDL
@@ -15,6 +16,29 @@ app.secret_key = os.environ.get("FLASK_SECRET", "dev-secret")
 
 # in-memory map of pending downloads: token -> (filepath, tmpdir)
 pending_downloads = {}
+
+QUALITY_FORMATS = {
+    'mp3': {
+        'format': 'bestaudio/best',
+        'extension': 'mp3',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    },
+    'mp4_best': {'format': 'bestvideo+bestaudio/best', 'extension': 'mp4'},
+}
+
+for height in (360, 480, 720, 1080):
+    QUALITY_FORMATS[f'mp4_{height}'] = {
+        'format': f'bestvideo[height<={height}]+bestaudio/best[height<={height}]',
+        'extension': 'mp4',
+    }
+    QUALITY_FORMATS[f'muted_{height}'] = {
+        'format': f'bestvideo[height<={height}]',
+        'extension': 'mp4',
+    }
 
 
 def cleanup_later(path, delay=60):
@@ -77,6 +101,12 @@ def download():
         flash('Please provide a URL')
         return redirect(url_for('index'))
 
+    quality = request.form.get('quality', 'mp4_best')
+    format_options = QUALITY_FORMATS.get(quality)
+    if not format_options:
+        flash('Please select a valid video quality.')
+        return redirect(url_for('index'))
+
     tmpdir = tempfile.mkdtemp(prefix='yvdl_')
 
     try:
@@ -92,7 +122,7 @@ def download():
                 app.logger.error(msg)
 
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
+            'format': format_options['format'],
             'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
             'noplaylist': True,
             'quiet': False,
@@ -102,6 +132,8 @@ def download():
             'logger': _YTDLPLogger(),
             'merge_output_format': 'mp4',
         }
+        if format_options.get('postprocessors'):
+            ydl_opts['postprocessors'] = format_options['postprocessors']
 
         # prefer an installed JS runtime (deno or node) and pass explicit path to yt-dlp
         try:
@@ -130,7 +162,12 @@ def download():
             # Fall back to calling yt-dlp CLI if installed
             import subprocess, json
             node_path = shutil.which('node') or shutil.which('nodejs')
-            cmd = ['yt-dlp', '-f', 'best', '-o', os.path.join(tmpdir, '%(title)s.%(ext)s'), '--no-playlist']
+            cmd = [
+                'yt-dlp', '-f', format_options['format'],
+                '-o', os.path.join(tmpdir, '%(title)s.%(ext)s'), '--no-playlist',
+            ]
+            if quality == 'mp3':
+                cmd += ['--extract-audio', '--audio-format', 'mp3', '--audio-quality', '192K']
             if test_only:
                 cmd += ['--skip-download']
             if node_path:
@@ -166,16 +203,34 @@ def download():
         return redirect(url_for('index'))
 
 
-@app.route('/get/<token>', methods=['GET'])
-def serve_file(token):
-    entry = pending_downloads.pop(token, None)
+def get_pending_file(token, remove=False):
+    entry = pending_downloads.pop(token, None) if remove else pending_downloads.get(token)
     if not entry:
         flash('File not found or expired')
         return redirect(url_for('index'))
     filepath, tmpdir = entry
+    return filepath, tmpdir
+
+
+@app.route('/preview/<token>', methods=['GET'])
+def preview_file(token):
+    entry = get_pending_file(token)
+    if not isinstance(entry, tuple):
+        return entry
+    filepath, _ = entry
+    media_type = mimetypes.guess_type(filepath)[0] or 'video/mp4'
+    return send_file(filepath, mimetype=media_type, as_attachment=False, conditional=True)
+
+
+@app.route('/get/<token>', methods=['GET'])
+def serve_file(token):
+    entry = get_pending_file(token, remove=True)
+    if not isinstance(entry, tuple):
+        return entry
+    filepath, tmpdir = entry
     # remove the tmpdir shortly after serving (1s) so the download can start
     cleanup_later(tmpdir, delay=1)
-    return send_file(filepath, as_attachment=True)
+    return send_file(filepath, as_attachment=True, download_name=os.path.basename(filepath))
 
 
 if __name__ == '__main__':

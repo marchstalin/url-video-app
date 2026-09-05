@@ -34,6 +34,20 @@
         <label>Page URL</label>
         <input type="text" name="url" placeholder="https://..." required>
 
+        <label for="quality">Format and quality</label>
+        <select id="quality" name="quality">
+          <option value="mp4_best">MP4 - Best available</option>
+          <option value="mp4_1080">MP4 - Up to 1080p</option>
+          <option value="mp4_720">MP4 - Up to 720p</option>
+          <option value="mp4_480">MP4 - Up to 480p</option>
+          <option value="mp4_360">MP4 - Up to 360p</option>
+          <option value="muted_1080">MP4 - Up to 1080p, muted</option>
+          <option value="muted_720">MP4 - Up to 720p, muted</option>
+          <option value="muted_480">MP4 - Up to 480p, muted</option>
+          <option value="muted_360">MP4 - Up to 360p, muted</option>
+          <option value="mp3">MP3 - Audio only</option>
+        </select>
+
         <!-- Cookies and proxy inputs removed for testing; app will attempt direct downloads -->
 
         <div style="margin-top:12px">

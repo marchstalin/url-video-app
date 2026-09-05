@@ -5,13 +5,18 @@ Simple Flask app that uses `yt-dlp` to download videos from a provided URL and r
 Quick start:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -U -r requirements.txt
 python app.py
 ```
+# Push the code
+env -u GIT_ASKPASS -u VSCODE_GIT_ASKPASS_NODE -u VSCODE_GIT_ASKPASS_MAIN \
+  git push -u origin main
 
 Open http://localhost:5000 and paste a video page URL. The app downloads the video directly from the URL without using cookie files.
+
+Choose the desired output before downloading: MP3 audio, MP4 with audio at up to 360p, 480p, 720p, or 1080p, or a muted MP4 video at those resolutions. MP4 merging and MP3 conversion require `ffmpeg` to be installed.
 
 If you see errors like HTTP 403 or warnings about JS runtimes, try:
 

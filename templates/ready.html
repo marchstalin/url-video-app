@@ -13,10 +13,14 @@
   <body>
     <div class="card">
       <h1>Your file is ready</h1>
-      <p class="small">Click the button below to download the file. It will be removed from the server shortly after the download starts.</p>
-      <form method="get" action="{{ url_for('serve_file', token=token) }}">
-        <button type="submit">Download {{ filename }}</button>
-      </form>
+      <p class="small">Preview the video below, or download the original file.</p>
+      <video controls preload="metadata" style="display:block; width:100%; max-height:520px; background:#111; margin:20px 0">
+        <source src="{{ url_for('preview_file', token=token) }}" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+      <a href="{{ url_for('serve_file', token=token) }}" download>
+        <button type="button">Download {{ filename }}</button>
+      </a>
       <p class="small"><a href="{{ url_for('index') }}">Return</a></p>
     </div>
   </body>
