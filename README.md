@@ -8,8 +8,18 @@ Quick start:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U -r requirements.txt
-python app.py
+gunicorn --bind 0.0.0.0:5000 app:app # OR python app.py
 ```
+
+For production, install the requirements and run the app with Gunicorn instead
+of Flask's development server:
+
+```bash
+gunicorn --bind 0.0.0.0:5000 app:app
+```
+
+Set `FLASK_DEBUG=true` only for local debugging. It is disabled by default.
+
 # Push the code
 env -u GIT_ASKPASS -u VSCODE_GIT_ASKPASS_NODE -u VSCODE_GIT_ASKPASS_MAIN \
   git push -u origin main
@@ -17,6 +27,8 @@ env -u GIT_ASKPASS -u VSCODE_GIT_ASKPASS_NODE -u VSCODE_GIT_ASKPASS_MAIN \
 Open http://localhost:5000 and paste a video page URL. The app downloads the video directly from the URL without using cookie files.
 
 Choose the desired output before downloading: MP3 audio, MP4 with audio at up to 360p, 480p, 720p, or 1080p, or a muted MP4 video at those resolutions. MP4 merging and MP3 conversion require `ffmpeg` to be installed.
+
+Downloaded and converted files are stored temporarily in a system directory such as `/tmp/yvdl_<random-id>/`. The file is used for preview and download, then the temporary directory is removed automatically. Files are not permanently saved in the project directory.
 
 If you see errors like HTTP 403 or warnings about JS runtimes, try:
 
